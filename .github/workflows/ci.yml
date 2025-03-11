@@ -27,9 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run migrations
-        run: make migrateup
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -37,6 +34,8 @@ jobs:
 
 #      - name: Build
 #        run: go build -v ./...
+      - name: Run migrations
+        run: make migrateup
 
       - name: Test
         run: make test
