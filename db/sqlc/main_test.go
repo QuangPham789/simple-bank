@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"github.com/QuangPham789/simple-bank/util"
 	"log"
 	"os"
 	"testing"
@@ -9,18 +10,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:123456@localhost:5432/simple_bank?sslmode=disable"
-)
-
 var testQueries *Queries
 var testDB *pgxpool.Pool
 
 func TestMain(m *testing.M) {
-	var err error
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatalf("cannot load config: %v", err)
+	}
 	// dbTest, err = pgx.Connect(context.Background(), dbSource)
-	testDB, err = pgxpool.New(context.Background(), dbSource)
+	testDB, err = pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		panic(err)
 	}
