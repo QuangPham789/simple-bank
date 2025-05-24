@@ -1,5 +1,5 @@
 # This workflow will build a golang project
-name: ci-test
+name: run-test
 
 on:
   push:
