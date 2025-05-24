@@ -8,19 +8,24 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Store struct {
+type Store interface {
+	TransferTx(ctx context.Context, arg TransferTxParam) (TransferTxResult, error)
+	Querier
+}
+
+type SQLStore struct {
 	*Queries
 	db *pgxpool.Pool
 }
 
-func NewStore(db *pgxpool.Pool) *Store {
-	return &Store{
+func NewStore(db *pgxpool.Pool) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (s *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (s *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -52,7 +57,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (s *Store) TransferTx(ctx context.Context, param TransferTxParam) (TransferTxResult, error) {
+func (s *SQLStore) TransferTx(ctx context.Context, param TransferTxParam) (TransferTxResult, error) {
 	var result = TransferTxResult{}
 	var err error
 	error := s.execTx(ctx, func(q *Queries) error {
