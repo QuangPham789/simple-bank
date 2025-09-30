@@ -1,3 +1,28 @@
+#version: "3.9"
+#
+#services:
+#  postgres:
+#    image: postgres:12-alpine
+#    container_name: postgres
+#    environment:
+#      POSTGRES_USER: root
+#      POSTGRES_PASSWORD: 123456
+#      POSTGRES_DB: simple_bank
+#    ports:
+#      - "5432:5432"
+#  api:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    environment:
+#        DB_SOURCE: "postgresql://root:123456@postgres:5432/simple_bank?sslmode=disable"
+#    depends_on:
+#        - postgres
+#    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+#    command: ["/app/main"]
+
 version: "3.9"
 
 services:
@@ -10,6 +35,9 @@ services:
       POSTGRES_DB: simple_bank
     ports:
       - "5432:5432"
+    networks:
+      - monitor
+
   api:
     build:
       context: .
@@ -17,8 +45,36 @@ services:
     ports:
       - "8080:8080"
     environment:
-        DB_SOURCE: "postgresql://root:123456@postgres:5432/simple_bank?sslmode=disable"
+      DB_SOURCE: "postgresql://root:123456@postgres:5432/simple_bank?sslmode=disable"
     depends_on:
-        - postgres
+      - postgres
     entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
     command: ["/app/main"]
+    networks:
+      - monitor
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    networks:
+      - monitor
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - monitor
+
+networks:
+  monitor:
+    driver: bridge

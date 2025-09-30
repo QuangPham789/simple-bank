@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 type Server struct {
@@ -35,6 +36,8 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
+	p := ginprometheus.NewPrometheus("gin")
+	p.Use(router)
 	router.POST("/user", server.createUser)
 	router.POST("/user/login", server.loginUser)
 
